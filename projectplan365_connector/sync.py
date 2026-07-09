@@ -8,6 +8,8 @@ from frappe.utils import cint, now_datetime, time_diff_in_seconds
 
 from projectplan365_connector import drive, mspdi
 
+logger = frappe.logger("projectplan365_connector", allow_site=True, file_count=5)
+
 
 def _log(project, direction, status, drive_file_id=None, error=None):
 	frappe.get_doc(
@@ -27,22 +29,42 @@ def _hash(content: bytes) -> str:
 
 
 def sync_all():
+	logger.info("sync_all: starting")
+
 	settings = frappe.get_single("PP365 Settings")
 	if not settings.enable or not settings.authorized or not settings.drive_folder_id:
+		logger.info(
+			"sync_all: skipped, settings incomplete (enable=%s authorized=%s drive_folder_id=%s)"
+			% (settings.enable, settings.authorized, bool(settings.drive_folder_id))
+		)
 		return
 
 	interval_seconds = cint(settings.poll_frequency or 15) * 60
 	if settings.last_run_on and time_diff_in_seconds(now_datetime(), settings.last_run_on) < interval_seconds:
+		logger.info(
+			"sync_all: skipped, throttled (last_run_on=%s, interval=%ss)"
+			% (settings.last_run_on, interval_seconds)
+		)
 		return
 
 	frappe.db.set_value("PP365 Settings", None, "last_run_on", now_datetime())
 	frappe.db.commit()
 
-	service = drive.get_drive_service()
+	try:
+		service = drive.get_drive_service()
+	except Exception:
+		logger.error("sync_all: failed to get Drive service\n%s" % frappe.get_traceback())
+		_log(None, "Outbound", "Failed", error=frappe.get_traceback())
+		frappe.db.commit()
+		return
+
 	folder_id = settings.drive_folder_id
 
+	logger.info("sync_all: running outbound sync")
 	_sync_outbound(service, folder_id)
+	logger.info("sync_all: running inbound sync")
 	_sync_inbound(service, folder_id)
+	logger.info("sync_all: done")
 
 
 def _sync_outbound(service, folder_id):
@@ -50,11 +72,13 @@ def _sync_outbound(service, folder_id):
 		"Project",
 		fields=["name", "project_name", "custom_pp365_drive_file_id", "custom_pp365_last_synced_hash"],
 	)
+	logger.info("sync_all: outbound, %d project(s) to check" % len(projects))
 	for p in projects:
 		try:
 			xml_bytes = mspdi.build_project_xml(p.name)
 			content_hash = _hash(xml_bytes)
 			if content_hash == p.custom_pp365_last_synced_hash:
+				logger.info("sync_all: outbound, %s unchanged, skipping" % p.name)
 				continue
 
 			filename = f"{p.project_name or p.name}.xml"
@@ -71,9 +95,11 @@ def _sync_outbound(service, folder_id):
 					"custom_pp365_last_synced_on": now_datetime(),
 				},
 			)
+			logger.info("sync_all: outbound, %s uploaded as drive file %s" % (p.name, file["id"]))
 			_log(p.name, "Outbound", "Success", drive_file_id=file["id"])
 		except Exception:
 			frappe.db.rollback()
+			logger.error("sync_all: outbound, %s failed\n%s" % (p.name, frappe.get_traceback()))
 			_log(p.name, "Outbound", "Failed", error=frappe.get_traceback())
 		finally:
 			frappe.db.commit()
@@ -92,6 +118,7 @@ def _sync_inbound(service, folder_id):
 		for p in frappe.get_all("Project", fields=["name", "custom_pp365_last_synced_hash"])
 	}
 
+	logger.info("sync_all: inbound, %d file(s) found in Drive folder" % len(files))
 	for f in files:
 		project_name = projects_by_file_id.get(f["id"])
 		try:
@@ -99,6 +126,7 @@ def _sync_inbound(service, folder_id):
 			content_hash = _hash(content)
 
 			if project_name and content_hash == synced_hashes.get(project_name):
+				logger.info("sync_all: inbound, drive file %s (%s) unchanged, skipping" % (f["id"], f["name"]))
 				continue  # unchanged since our last sync (including our own last export)
 
 			parsed = mspdi.parse_project_xml(content)
@@ -113,9 +141,13 @@ def _sync_inbound(service, folder_id):
 					"custom_pp365_last_synced_on": now_datetime(),
 				},
 			)
+			logger.info("sync_all: inbound, drive file %s applied to project %s" % (f["id"], result_project))
 			_log(result_project, "Inbound", "Success", drive_file_id=f["id"])
 		except Exception:
 			frappe.db.rollback()
+			logger.error(
+				"sync_all: inbound, drive file %s failed\n%s" % (f["id"], frappe.get_traceback())
+			)
 			_log(project_name, "Inbound", "Failed", drive_file_id=f["id"], error=frappe.get_traceback())
 		finally:
 			frappe.db.commit()
