@@ -105,6 +105,11 @@ def authorize_access(reauthorize: bool = False):
 		settings.refresh_token = r["refresh_token"]
 		settings.authorized = 1
 		settings.save()
+		frappe.db.commit()  # GET requests aren't auto-committed; this write must persist explicitly
+	else:
+		frappe.throw(
+			_("Google did not return a refresh token: {0}").format(r.get("error_description") or r)
+		)
 
 	frappe.cache.hdel("pp365_settings", "authorization_code")
 
