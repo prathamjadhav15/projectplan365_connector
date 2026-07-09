@@ -13,7 +13,7 @@ from projectplan365_connector.projectplan365_connector.doctype.pp365_settings.pp
 )
 
 OAUTH_URL = "https://oauth2.googleapis.com/token"
-XML_MIME = "application/xml"
+XML_MIME = "text/xml"
 
 
 def get_drive_service():
@@ -71,7 +71,12 @@ def upload_or_update_file(
 	if file_id:
 		file = (
 			service.files()
-			.update(fileId=file_id, media_body=media, fields="id, modifiedTime")
+			.update(
+				fileId=file_id,
+				body={"mimeType": XML_MIME},
+				media_body=media,
+				fields="id, modifiedTime",
+			)
 			.execute()
 		)
 	else:
