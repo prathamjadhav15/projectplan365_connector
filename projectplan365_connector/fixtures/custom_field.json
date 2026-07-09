@@ -1,0 +1,51 @@
+[
+ {
+  "doctype": "Custom Field",
+  "name": "Task-custom_pp365_uid",
+  "dt": "Task",
+  "fieldname": "custom_pp365_uid",
+  "fieldtype": "Data",
+  "label": "PP365 UID",
+  "insert_after": "template_task",
+  "read_only": 1,
+  "no_copy": 1,
+  "print_hide": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Project-custom_pp365_drive_file_id",
+  "dt": "Project",
+  "fieldname": "custom_pp365_drive_file_id",
+  "fieldtype": "Data",
+  "label": "PP365 Drive File ID",
+  "insert_after": "subject",
+  "read_only": 1,
+  "no_copy": 1,
+  "print_hide": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Project-custom_pp365_last_synced_hash",
+  "dt": "Project",
+  "fieldname": "custom_pp365_last_synced_hash",
+  "fieldtype": "Data",
+  "label": "PP365 Last Synced Hash",
+  "insert_after": "custom_pp365_drive_file_id",
+  "read_only": 1,
+  "no_copy": 1,
+  "print_hide": 1,
+  "hidden": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Project-custom_pp365_last_synced_on",
+  "dt": "Project",
+  "fieldname": "custom_pp365_last_synced_on",
+  "fieldtype": "Datetime",
+  "label": "PP365 Last Synced On",
+  "insert_after": "custom_pp365_last_synced_hash",
+  "read_only": 1,
+  "no_copy": 1,
+  "print_hide": 1
+ }
+]

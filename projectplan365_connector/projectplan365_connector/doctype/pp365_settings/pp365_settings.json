@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "creation": "2026-07-09 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable",
+  "drive_folder_id",
+  "poll_frequency",
+  "column_break_auth",
+  "authorized",
+  "refresh_token",
+  "last_run_on"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable Sync"
+  },
+  {
+   "description": "The Google Drive folder ID that ProjectPlan365 Online is configured to sync with. Found in the folder's URL: drive.google.com/drive/folders/<this-part>",
+   "fieldname": "drive_folder_id",
+   "fieldtype": "Data",
+   "label": "Google Drive Folder ID"
+  },
+  {
+   "default": "15",
+   "fieldname": "poll_frequency",
+   "fieldtype": "Select",
+   "label": "Poll Frequency (minutes)",
+   "options": "15\n30\n60"
+  },
+  {
+   "fieldname": "column_break_auth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "authorized",
+   "fieldtype": "Check",
+   "label": "Authorized",
+   "read_only": 1
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Refresh Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_run_on",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Last Run On",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-07-09 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "ProjectPlan365 Connector",
+ "name": "PP365 Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

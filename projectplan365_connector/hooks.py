@@ -5,6 +5,26 @@ app_description = "Automated bidirectional sync between ERPNext Projects/Tasks a
 app_email = "prathamjadhav052@gmail.com"
 app_license = "mit"
 
+fixtures = [
+	{
+		"dt": "Custom Field",
+		"filters": [["name", "in", [
+			"Task-custom_pp365_uid",
+			"Project-custom_pp365_drive_file_id",
+			"Project-custom_pp365_last_synced_hash",
+			"Project-custom_pp365_last_synced_on",
+		]]],
+	}
+]
+
+doctype_js = {"PP365 Settings": "public/js/pp365_settings.js"}
+
+scheduler_events = {
+	"cron": {
+		"*/15 * * * *": ["projectplan365_connector.sync.sync_all"],
+	}
+}
+
 # Apps
 # ------------------
 
