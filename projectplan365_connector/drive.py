@@ -5,12 +5,10 @@ import io
 
 import frappe
 import httplib2
-from google_auth_httplib2 import AuthorizedHttp
 from google.oauth2.credentials import Credentials
+from google_auth_httplib2 import AuthorizedHttp
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
-
-REQUEST_TIMEOUT = 30
 
 from projectplan365_connector.projectplan365_connector.doctype.pp365_settings.pp365_settings import (
 	SCOPES,
@@ -18,6 +16,7 @@ from projectplan365_connector.projectplan365_connector.doctype.pp365_settings.pp
 
 OAUTH_URL = "https://oauth2.googleapis.com/token"
 XML_MIME = "text/xml"
+REQUEST_TIMEOUT = 30
 
 
 def get_drive_service():
@@ -48,6 +47,9 @@ def list_folder_files(service, folder_id: str) -> list[dict]:
 				spaces="drive",
 				fields="nextPageToken, files(id, name, modifiedTime)",
 				pageToken=page_token,
+				supportsAllDrives=True,
+				includeItemsFromAllDrives=True,
+				corpora="allDrives",
 			)
 			.execute()
 		)
@@ -59,7 +61,7 @@ def list_folder_files(service, folder_id: str) -> list[dict]:
 
 
 def download_file(service, file_id: str) -> bytes:
-	request = service.files().get_media(fileId=file_id)
+	request = service.files().get_media(fileId=file_id, supportsAllDrives=True)
 	buffer = io.BytesIO()
 	downloader = MediaIoBaseDownload(buffer, request)
 	done = False
@@ -81,6 +83,7 @@ def upload_or_update_file(
 				body={"mimeType": XML_MIME},
 				media_body=media,
 				fields="id, modifiedTime",
+				supportsAllDrives=True,
 			)
 			.execute()
 		)
@@ -88,7 +91,7 @@ def upload_or_update_file(
 		metadata = {"name": filename, "parents": [folder_id], "mimeType": XML_MIME}
 		file = (
 			service.files()
-			.create(body=metadata, media_body=media, fields="id, modifiedTime")
+			.create(body=metadata, media_body=media, fields="id, modifiedTime", supportsAllDrives=True)
 			.execute()
 		)
 
