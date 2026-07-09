@@ -46,8 +46,8 @@ class PP365Settings(Document):
 		}
 
 		try:
-			r = requests.post(GoogleOAuth.OAUTH_URL, data=data).json()
-		except requests.exceptions.HTTPError:
+			r = requests.post(GoogleOAuth.OAUTH_URL, data=data, timeout=15).json()
+		except requests.exceptions.RequestException:
 			frappe.throw(
 				_("Something went wrong refreshing the Google Drive access token. Re-authorize via {0}.").format(
 					frappe.bold(_("Connect to Google Drive"))
@@ -97,7 +97,7 @@ def authorize_access(reauthorize: bool = False):
 	}
 
 	try:
-		r = requests.post(GoogleOAuth.OAUTH_URL, data=data).json()
+		r = requests.post(GoogleOAuth.OAUTH_URL, data=data, timeout=15).json()
 	except Exception as e:
 		frappe.throw(str(e))
 

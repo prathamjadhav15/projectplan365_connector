@@ -4,9 +4,13 @@ refresh token stored on PP365 Settings."""
 import io
 
 import frappe
+import httplib2
+from google_auth_httplib2 import AuthorizedHttp
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
+
+REQUEST_TIMEOUT = 30
 
 from projectplan365_connector.projectplan365_connector.doctype.pp365_settings.pp365_settings import (
 	SCOPES,
@@ -28,7 +32,8 @@ def get_drive_service():
 		client_secret=google_settings.get_password(fieldname="client_secret", raise_exception=False),
 		scopes=[SCOPES],
 	)
-	return build("drive", "v3", credentials=credentials, static_discovery=False)
+	http = AuthorizedHttp(credentials, http=httplib2.Http(timeout=REQUEST_TIMEOUT))
+	return build("drive", "v3", http=http, static_discovery=True)
 
 
 def list_folder_files(service, folder_id: str) -> list[dict]:
