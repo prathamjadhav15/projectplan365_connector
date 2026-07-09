@@ -2,6 +2,7 @@
 shared Google Drive folder that ProjectPlan365 Online reads/writes."""
 
 import hashlib
+import logging
 
 import frappe
 from frappe.utils import cint, now_datetime, time_diff_in_seconds
@@ -9,6 +10,7 @@ from frappe.utils import cint, now_datetime, time_diff_in_seconds
 from projectplan365_connector import drive, mspdi
 
 logger = frappe.logger("projectplan365_connector", allow_site=True, file_count=5)
+logger.setLevel(logging.INFO)  # frappe defaults production loggers to ERROR only
 
 
 def _log(project, direction, status, drive_file_id=None, error=None):
