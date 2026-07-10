@@ -19,5 +19,47 @@ frappe.ui.form.on("PP365 Settings", {
 				)}</span></div></div>`
 			);
 		}
+
+		frm.add_custom_button(__("Update Planner Bucket"), () => {
+			frappe.prompt(
+				[
+					{
+						fieldname: "token",
+						fieldtype: "Password",
+						label: __("Microsoft Graph Access Token"),
+						reqd: 1,
+					},
+					{
+						fieldname: "bucket_id",
+						fieldtype: "Data",
+						label: __("Bucket ID"),
+						reqd: 1,
+					},
+					{
+						fieldname: "new_name",
+						fieldtype: "Data",
+						label: __("New Bucket Name"),
+						reqd: 1,
+					},
+				],
+				(values) => {
+					frappe.call({
+						method: "projectplan365_connector.planner.update_bucket",
+						args: {
+							token: values.token,
+							bucket_id: values.bucket_id,
+							new_name: values.new_name,
+						},
+						freeze: true,
+						freeze_message: __("Updating bucket..."),
+						callback: () => {
+							frappe.show_alert({ message: __("Bucket updated successfully"), indicator: "green" });
+						},
+					});
+				},
+				__("Update Planner Bucket"),
+				__("Update")
+			);
+		});
 	},
 });
