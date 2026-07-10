@@ -25,8 +25,9 @@ frappe.ui.form.on("PP365 Settings", {
 				[
 					{
 						fieldname: "token",
-						fieldtype: "Password",
+						fieldtype: "Small Text",
 						label: __("Microsoft Graph Access Token"),
+						description: __("Access tokens are long (1000+ characters) — the Password field type caps at 140 characters, so this uses Small Text instead."),
 						reqd: 1,
 					},
 					{
