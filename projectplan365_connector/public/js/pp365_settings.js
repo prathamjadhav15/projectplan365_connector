@@ -20,18 +20,37 @@ frappe.ui.form.on("PP365 Settings", {
 			);
 		}
 
+		const TOKEN_SESSION_KEY = "pp365_graph_token";
+
 		const token_field = {
 			fieldname: "token",
 			fieldtype: "Small Text",
 			label: __("Microsoft Graph Access Token"),
 			description: __("Access tokens are long (1000+ characters) — the Password field type caps at 140 characters, so this uses Small Text instead."),
+			default: sessionStorage.getItem(TOKEN_SESSION_KEY) || "",
 			reqd: 1,
 		};
+
+		const remember_field = {
+			fieldname: "remember_token",
+			fieldtype: "Check",
+			label: __("Remember token for this browser tab (cleared when tab closes, never saved to disk)"),
+			default: sessionStorage.getItem(TOKEN_SESSION_KEY) ? 1 : 0,
+		};
+
+		function handle_token(values) {
+			if (values.remember_token) {
+				sessionStorage.setItem(TOKEN_SESSION_KEY, values.token);
+			} else {
+				sessionStorage.removeItem(TOKEN_SESSION_KEY);
+			}
+		}
 
 		frm.add_custom_button(__("Update Planner Bucket"), () => {
 			frappe.prompt(
 				[
 					token_field,
+					remember_field,
 					{
 						fieldname: "bucket_id",
 						fieldtype: "Data",
@@ -46,6 +65,7 @@ frappe.ui.form.on("PP365 Settings", {
 					},
 				],
 				(values) => {
+					handle_token(values);
 					frappe.call({
 						method: "projectplan365_connector.planner.update_bucket",
 						args: {
@@ -69,6 +89,7 @@ frappe.ui.form.on("PP365 Settings", {
 			frappe.prompt(
 				[
 					token_field,
+					remember_field,
 					{
 						fieldname: "task_id",
 						fieldtype: "Data",
@@ -85,6 +106,7 @@ frappe.ui.form.on("PP365 Settings", {
 					},
 				],
 				(values) => {
+					handle_token(values);
 					frappe.call({
 						method: "projectplan365_connector.planner.patch_task",
 						args: {
